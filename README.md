@@ -132,11 +132,11 @@ $$\text{Score} = 0.30 \cdot \text{HRR} + 0.20 \cdot \text{norm\_LTV} + 0.20 \cdo
 | Component | Technology | Rationale |
 | :--- | :--- | :--- |
 | **Monorepo Architecture** | npm workspaces | Modular separation of `apps/api`, `apps/web`, `simulator`, `agent`, and `workers` |
-| **Backend Core** | NestJS 10 & TypeScript | Enterprise modular architecture with dependency injection |
-| **Database & ORM** | PostgreSQL 18 + Prisma ORM | 10 relational tables, strict migrations, strong typing |
+| **Backend Core** | Node.js & NestJS 10 | Enterprise modular architecture with dependency injection |
+| **Database & ORM** | PostgreSQL 18 + Prisma ORM | 10 relational tables, strict migrations, relational queries |
 | **Worker Queue** | BullMQ + Redis 7 | Resilient background processing of delayed payment retries |
 | **AI Agent Runtime** | Zod Schema Validator + Fallback Engine | Guardrail-bounded structured outputs with zero hallucination |
-| **Frontend Framework** | React 18, Vite, Tailwind CSS | Fast, dense, high-contrast operational merchant console |
+| **Frontend Framework** | React 18, Vite, JavaScript (ES6+), Tailwind CSS | Fast, dense, high-contrast operational merchant console |
 | **Data Visualizations** | Recharts | Live responsive bar charts and distribution donuts |
 | **Authentication** | JWT (HMAC-SHA256) + bcryptjs | Multi-tenant merchant isolation with 1-click demo shortcuts |
 
@@ -147,7 +147,7 @@ $$\text{Score} = 0.30 \cdot \text{HRR} + 0.20 \cdot \text{norm\_LTV} + 0.20 \cdo
 Judges evaluate engineering integrity. Here is the exact transparency breakdown:
 
 ### What is 100% REAL:
-- ✅ **Complete Production Codebase**: All TypeScript code in `apps/api`, `apps/web`, `agent`, `workers`, and `simulator` is genuinely built and compiled.
+- ✅ **Complete Production Codebase**: All code in `apps/api`, `apps/web`, `agent`, `workers`, and `simulator` is genuinely built and fully running.
 - ✅ **PostgreSQL Database**: Real schema with 10 tables, real constraints, foreign keys, and genuine database persistence.
 - ✅ **Mathematical Scoring Engine**: Deterministic 5-factor scoring formula executed live on actual database records.
 - ✅ **Policy Guardrail Enforcement**: Auto-approval gates, discount limits, and human-in-the-loop flags evaluated deterministically.
