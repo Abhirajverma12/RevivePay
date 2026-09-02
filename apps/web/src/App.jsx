@@ -15,16 +15,35 @@ export default function App() {
   const [apiStatus, setApiStatus] = useState('checking');
 
   useEffect(() => {
-    apiFetch('/api/health')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status === 'ok') {
-          setApiStatus('connected');
-        } else {
-          setApiStatus('disconnected');
+    let cancelled = false;
+    let timer;
+
+    const checkHealth = async () => {
+      try {
+        const res = await apiFetch('/api/health');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'ok' && !cancelled) {
+            setApiStatus('connected');
+            return;
+          }
         }
-      })
-      .catch(() => setApiStatus('disconnected'));
+      } catch (err) {
+        // Backend still spinning up from sleep
+      }
+
+      if (!cancelled) {
+        setApiStatus('checking');
+        timer = setTimeout(checkHealth, 2500);
+      }
+    };
+
+    checkHealth();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, []);
 
   return (
@@ -32,6 +51,15 @@ export default function App() {
       <Router>
         <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-sky-500 selection:text-white">
           <Navbar apiStatus={apiStatus} />
+
+          {apiStatus === 'checking' && (
+            <div className="bg-sky-950/80 border-b border-sky-500/30 px-4 py-2 text-center text-xs text-sky-200 flex items-center justify-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-amber-400 animate-ping"></span>
+              <span>
+                Waking up cloud backend (Render free tier cold start ~30s)... Metrics will populate automatically once connected.
+              </span>
+            </div>
+          )}
 
           <main className="flex-1">
             <Routes>

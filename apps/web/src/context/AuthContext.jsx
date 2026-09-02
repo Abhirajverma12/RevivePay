@@ -8,37 +8,64 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('revivepay_token'));
   const [isLoading, setIsLoading] = useState(true);
 
-  // Validate session on mount
+  // Validate session on mount with automatic retry while cloud backend wakes up
   useEffect(() => {
+    let cancelled = false;
+    let retryTimer;
+
     const checkAuth = async () => {
       const storedToken = localStorage.getItem('revivepay_token');
-      if (!storedToken) {
-        await quickLogin('billing@saasifycloud.io');
-        setIsLoading(false);
-        return;
-      }
 
       try {
-        const res = await apiFetch('/api/auth/me', {
-          headers: { Authorization: `Bearer ${storedToken}` },
-        });
-        if (res.ok) {
-          const profile = await res.json();
-          setMerchant(profile);
-          setToken(storedToken);
-        } else {
-          localStorage.removeItem('revivepay_token');
-          setMerchant(null);
-          setToken(null);
+        if (storedToken) {
+          const res = await apiFetch('/api/auth/me', {
+            headers: { Authorization: `Bearer ${storedToken}` },
+          });
+          if (res.ok) {
+            const profile = await res.json();
+            if (!cancelled) {
+              setMerchant(profile);
+              setToken(storedToken);
+              setIsLoading(false);
+            }
+            return;
+          } else {
+            localStorage.removeItem('revivepay_token');
+          }
         }
-      } catch {
-        // Leave state on error
-      } finally {
-        setIsLoading(false);
+
+        // Auto-login to demo merchant
+        const res = await apiFetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'billing@saasifycloud.io', password: 'password123' }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled) {
+            localStorage.setItem('revivepay_token', data.token);
+            setToken(data.token);
+            setMerchant(data.merchant);
+            setIsLoading(false);
+          }
+          return;
+        }
+      } catch (err) {
+        // Backend still waking up from sleep (Render free tier cold start)
+      }
+
+      if (!cancelled) {
+        retryTimer = setTimeout(checkAuth, 3000);
       }
     };
 
     checkAuth();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(retryTimer);
+    };
   }, []);
 
   const login = async (email, password) => {

@@ -50,19 +50,35 @@ export default function DashboardPage() {
         apiFetch(`/api/analytics/failure-reasons${merchantQuery}`),
         apiFetch(`/api/analytics/strategies${merchantQuery}`),
       ]);
-      setRevenue(await revRes.json());
-      setFailureReasons(await failRes.json());
-      setStrategies(await stratRes.json());
+      if (revRes.ok) setRevenue(await revRes.json());
+      if (failRes.ok) setFailureReasons(await failRes.json());
+      if (stratRes.ok) setStrategies(await stratRes.json());
     } catch (err) {
-      console.error(err);
+      console.error('Analytics fetch wait (waking up cloud backend):', err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
-  }, [merchant?.id]);
+    let cancelled = false;
+    let timer;
+
+    const loadData = async () => {
+      await fetchData();
+      // If data is still null, retry in 3 seconds to catch Render waking up
+      if (!cancelled && !revenue) {
+        timer = setTimeout(loadData, 3000);
+      }
+    };
+
+    loadData();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [merchant?.id, revenue !== null]);
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-4 py-8">
