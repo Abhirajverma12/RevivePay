@@ -32,6 +32,7 @@ const FAILURE_COLORS: Record<string, string> = {
 };
 
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../utils/api';
 
 export default function DashboardPage() {
   const { merchant } = useAuth();
@@ -45,9 +46,9 @@ export default function DashboardPage() {
     try {
       const merchantQuery = merchant?.id ? `?merchantId=${merchant.id}` : '';
       const [revRes, failRes, stratRes] = await Promise.all([
-        fetch(`/api/analytics/revenue${merchantQuery}`),
-        fetch(`/api/analytics/failure-reasons${merchantQuery}`),
-        fetch(`/api/analytics/strategies${merchantQuery}`),
+        apiFetch(`/api/analytics/revenue${merchantQuery}`),
+        apiFetch(`/api/analytics/failure-reasons${merchantQuery}`),
+        apiFetch(`/api/analytics/strategies${merchantQuery}`),
       ]);
       setRevenue(await revRes.json());
       setFailureReasons(await failRes.json());

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Bot, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '../utils/api';
 
 export default function AgentActivityPage() {
   const [activities, setActivities] = useState<any[]>([]);
@@ -9,7 +10,7 @@ export default function AgentActivityPage() {
   const fetchActivity = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/agent/activity?limit=40');
+      const res = await apiFetch('/api/agent/activity?limit=40');
       const data = await res.json();
       setActivities(data || []);
     } catch (err) {

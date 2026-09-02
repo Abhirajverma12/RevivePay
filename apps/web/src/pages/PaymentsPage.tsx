@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ArrowRight, RefreshCw, AlertCircle, PlusCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../utils/api';
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<any[]>([]);
@@ -36,7 +37,7 @@ export default function PaymentsPage() {
         ...(search ? { search } : {}),
       });
 
-      const res = await fetch(`/api/recovery/failed-payments?${queryParams}`);
+      const res = await apiFetch(`/api/recovery/failed-payments?${queryParams}`);
       const data = await res.json();
       setPayments(data.data || []);
       setTotal(data.total || 0);
@@ -54,7 +55,7 @@ export default function PaymentsPage() {
 
   // Load customers for modal
   useEffect(() => {
-    fetch('/api/payments/customers')
+    apiFetch('/api/payments/customers')
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
@@ -69,7 +70,7 @@ export default function PaymentsPage() {
     if (!simCustomerId) return;
     setIsSimulating(true);
     try {
-      const res = await fetch('/api/payments/simulate-failure', {
+      const res = await apiFetch('/api/payments/simulate-failure', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

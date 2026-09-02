@@ -8,13 +8,14 @@ import AgentActivityPage from './pages/AgentActivityPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import LoginPage from './pages/LoginPage';
 
+import { apiFetch } from './utils/api';
 import { AuthProvider } from './context/AuthContext';
 
 export default function App() {
   const [apiStatus, setApiStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
 
   useEffect(() => {
-    fetch('/api/health')
+    apiFetch('/api/health')
       .then((res) => res.json())
       .then((data) => {
         if (data.status === 'ok') {

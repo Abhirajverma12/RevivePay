@@ -19,6 +19,8 @@
     "build:workers": "tsc -p workers/tsconfig.json",
     "build:api": "npm --workspace=apps/api run build",
     "build:web": "npm --workspace=apps/web run build",
+    "build:backend": "npx prisma generate && npm run build:simulator && npm run build:agent && npm run build:workers && npm run build:api",
+    "start:backend": "node apps/api/dist/main.js",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "prisma:generate": "npx prisma generate",

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { apiFetch } from '../utils/api';
 import {
   ArrowLeft,
   Sparkles,
@@ -26,7 +27,7 @@ export default function PaymentDetailPage() {
     if (!id) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/recovery/${id}`);
+      const res = await apiFetch(`/api/recovery/${id}`);
       if (res.ok) {
         setData(await res.json());
       }
@@ -46,7 +47,7 @@ export default function PaymentDetailPage() {
     setIsAnalyzing(true);
     try {
       // Analyze and formulate AI decision
-      const res = await fetch(`/api/agent/decide/${id}`, { method: 'POST' });
+      const res = await apiFetch(`/api/agent/decide/${id}`, { method: 'POST' });
       if (res.ok) {
         await fetchDetails();
       }
@@ -62,7 +63,7 @@ export default function PaymentDetailPage() {
     setIsRecovering(true);
     setRecoveryMessage(null);
     try {
-      const res = await fetch(`/api/recovery/${id}/recover`, {
+      const res = await apiFetch(`/api/recovery/${id}/recover`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ forceImmediateForDemo: true }),

@@ -11,6 +11,7 @@ import {
   Pie,
 } from 'recharts';
 import { RefreshCw, BarChart3, PieChart as PieIcon } from 'lucide-react';
+import { apiFetch } from '../utils/api';
 
 const COLORS = ['#38bdf8', '#818cf8', '#34d399', '#f472b6', '#fbbf24', '#f87171', '#a78bfa', '#94a3b8'];
 
@@ -23,8 +24,8 @@ export default function AnalyticsPage() {
     setLoading(true);
     try {
       const [stratRes, failRes] = await Promise.all([
-        fetch('/api/analytics/strategies'),
-        fetch('/api/analytics/failure-reasons'),
+        apiFetch('/api/analytics/strategies'),
+        apiFetch('/api/analytics/failure-reasons'),
       ]);
       setStrategies(await stratRes.json());
       setFailureReasons(await failRes.json());
