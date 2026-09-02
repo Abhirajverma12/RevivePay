@@ -1,0 +1,210 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum FailureReason {
+  INSUFFICIENT_FUNDS
+  CARD_DECLINED
+  EXPIRED_CARD
+  NETWORK_ERROR
+  BANK_ERROR
+  AUTHENTICATION_FAILED
+}
+
+enum RecoveryStrategy {
+  IMMEDIATE_RETRY
+  DELAYED_RETRY
+  REMINDER
+  ALTERNATIVE_METHOD
+  PAYMENT_LINK
+  PERSONALIZED_MESSAGE
+  INCENTIVE
+  NO_ACTION
+}
+
+model Merchant {
+  id              String          @id @default(uuid())
+  name            String
+  email           String          @unique
+  password_hash   String?
+  created_at      DateTime        @default(now())
+  updated_at      DateTime        @updatedAt
+
+  policy          MerchantPolicy?
+  customers       Customer[]
+  payments        Payment[]
+
+  @@map("merchants")
+}
+
+model MerchantPolicy {
+  id                            String   @id @default(uuid())
+  merchant_id                   String   @unique
+  max_retries                   Int      @default(3)
+  max_discount_pct              Float    @default(15.0)
+  high_value_approval_threshold Float    @default(50000.0)
+  created_at                    DateTime @default(now())
+  updated_at                    DateTime @updatedAt
+
+  merchant                      Merchant @relation(fields: [merchant_id], references: [id], onDelete: Cascade)
+
+  @@map("merchant_policies")
+}
+
+model Customer {
+  id                       String    @id @default(uuid())
+  merchant_id              String
+  name                     String
+  email                    String
+  phone                    String?
+  lifetime_value           Float     @default(0.0)
+  successful_payments      Int       @default(0)
+  failed_payments          Int       @default(0)
+  historical_recovery_rate Float     @default(0.0)
+  created_at               DateTime  @default(now())
+  updated_at               DateTime  @updatedAt
+
+  merchant                 Merchant  @relation(fields: [merchant_id], references: [id], onDelete: Cascade)
+  payments                 Payment[]
+
+  @@index([merchant_id])
+  @@map("customers")
+}
+
+model Payment {
+  id               String           @id @default(uuid())
+  merchant_id      String
+  customer_id      String
+  amount           Float
+  currency         String           @default("INR")
+  status           String           @default("PENDING") // PENDING, SUCCESS, FAILED, RECOVERED
+  method           String           // card, upi, netbanking
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
+
+  merchant         Merchant         @relation(fields: [merchant_id], references: [id], onDelete: Cascade)
+  customer         Customer         @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  failed_payment   FailedPayment?
+  payment_attempts PaymentAttempt[]
+
+  @@index([merchant_id])
+  @@index([customer_id])
+  @@index([status])
+  @@map("payments")
+}
+
+model PaymentAttempt {
+  id             String   @id @default(uuid())
+  payment_id     String
+  attempt_number Int      @default(1)
+  status         String   // SUCCESS, FAILED
+  error_message  String?
+  attempted_at   DateTime @default(now())
+
+  payment        Payment  @relation(fields: [payment_id], references: [id], onDelete: Cascade)
+
+  @@index([payment_id])
+  @@map("payment_attempts")
+}
+
+model FailedPayment {
+  id                  String              @id @default(uuid())
+  payment_id          String              @unique
+  failure_reason      FailureReason
+  retry_count         Int                 @default(0)
+  status              String              @default("UNRESOLVED") // UNRESOLVED, IN_RECOVERY, RECOVERED, ABANDONED
+  failed_at           DateTime            @default(now())
+
+  payment             Payment             @relation(fields: [payment_id], references: [id], onDelete: Cascade)
+  recovery_prediction RecoveryPrediction?
+  agent_actions       AgentAction[]
+
+  @@index([payment_id])
+  @@index([failed_at])
+  @@index([failure_reason])
+  @@index([status])
+  @@map("failed_payments")
+}
+
+model RecoveryPrediction {
+  id                  String        @id @default(uuid())
+  failed_payment_id   String        @unique
+  recovery_probability Float
+  expected_recovery   Float
+  model_version       String        @default("rule-based-v1")
+  factor_scores       Json?
+  predicted_at        DateTime      @default(now())
+
+  failed_payment      FailedPayment @relation(fields: [failed_payment_id], references: [id], onDelete: Cascade)
+
+  @@index([failed_payment_id])
+  @@map("recovery_predictions")
+}
+
+model AgentAction {
+  id                String           @id @default(uuid())
+  failed_payment_id String
+  action            RecoveryStrategy
+  delay_hours       Int?
+  expected_recovery Float
+  confidence        Float
+  reason            String
+  status            String           @default("AUTO_APPROVED") // AUTO_APPROVED, PENDING_APPROVAL, APPROVED, REJECTED, EXECUTED
+  decided_at        DateTime         @default(now())
+
+  failed_payment    FailedPayment    @relation(fields: [failed_payment_id], references: [id], onDelete: Cascade)
+  interventions     Intervention[]
+  audit_logs        AuditLog[]
+
+  @@index([failed_payment_id])
+  @@index([decided_at])
+  @@index([action])
+  @@index([status])
+  @@map("agent_actions")
+}
+
+model Intervention {
+  id               String           @id @default(uuid())
+  agent_action_id  String
+  status           String           @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, FAILED, SKIPPED
+  executed_at      DateTime         @default(now())
+  details          Json?
+
+  agent_action     AgentAction      @relation(fields: [agent_action_id], references: [id], onDelete: Cascade)
+  recovery_outcome RecoveryOutcome?
+
+  @@index([agent_action_id])
+  @@map("interventions")
+}
+
+model RecoveryOutcome {
+  id              String       @id @default(uuid())
+  intervention_id String       @unique
+  recovered       Boolean
+  amount_recovered Float       @default(0.0)
+  resolved_at     DateTime     @default(now())
+  notes           String?
+
+  intervention    Intervention @relation(fields: [intervention_id], references: [id], onDelete: Cascade)
+
+  @@index([intervention_id])
+  @@map("recovery_outcomes")
+}
+
+model AuditLog {
+  id              String      @id @default(uuid())
+  agent_action_id String
+  event           String
+  details         Json?
+  created_at      DateTime    @default(now())
+
+  agent_action    AgentAction @relation(fields: [agent_action_id], references: [id], onDelete: Cascade)
+
+  @@index([agent_action_id])
+  @@map("audit_logs")
+}
