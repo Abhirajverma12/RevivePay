@@ -1,0 +1,45 @@
+{
+  "name": "revivepay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RevivePay - Razorpay AI Buildathon AI Revenue Recovery Engine",
+  "workspaces": [
+    "apps/*",
+    "simulator",
+    "agent",
+    "workers"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces",
+    "dev:api": "npm --workspace=apps/api run start:dev",
+    "dev:web": "npm --workspace=apps/web run dev",
+    "build": "npm run build --workspaces",
+    "build:simulator": "tsc -p simulator/tsconfig.json",
+    "build:agent": "tsc -p agent/tsconfig.json",
+    "build:workers": "tsc -p workers/tsconfig.json",
+    "build:api": "npm --workspace=apps/api run build",
+    "build:web": "npm --workspace=apps/web run build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "prisma:generate": "npx prisma generate",
+    "prisma:migrate": "npx prisma migrate dev",
+    "prisma:seed": "npx ts-node prisma/seed.ts",
+    "demo:seed": "npx ts-node prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "npx ts-node prisma/seed.ts"
+  },
+  "keywords": [
+    "revenue-recovery",
+    "ai-agent",
+    "razorpay",
+    "hackathon"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bullmq": "^6.3.4",
+    "ioredis": "^6.0.0",
+    "zod": "^4.5.4"
+  }
+}
