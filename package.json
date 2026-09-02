@@ -14,22 +14,19 @@
     "dev:api": "npm --workspace=apps/api run start:dev",
     "dev:web": "npm --workspace=apps/web run dev",
     "build": "npm run build --workspaces",
-    "build:simulator": "tsc -p simulator/tsconfig.json",
-    "build:agent": "tsc -p agent/tsconfig.json",
-    "build:workers": "tsc -p workers/tsconfig.json",
     "build:api": "npm --workspace=apps/api run build",
     "build:web": "npm --workspace=apps/web run build",
-    "build:backend": "npx prisma generate && npm run build:simulator && npm run build:agent && npm run build:workers && npm run build:api",
+    "build:backend": "npx prisma generate && npm run build:api",
     "start:backend": "node apps/api/dist/main.js",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "prisma:generate": "npx prisma generate",
     "prisma:migrate": "npx prisma migrate dev",
-    "prisma:seed": "npx ts-node prisma/seed.ts",
-    "demo:seed": "npx ts-node prisma/seed.ts"
+    "prisma:seed": "node prisma/seed.js",
+    "demo:seed": "node prisma/seed.js"
   },
   "prisma": {
-    "seed": "npx ts-node prisma/seed.ts"
+    "seed": "node prisma/seed.js"
   },
   "keywords": [
     "revenue-recovery",

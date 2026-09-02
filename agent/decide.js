@@ -1,18 +1,31 @@
-import { RecoveryStrategy } from '@prisma/client';
-import { AgentContext, AgentDecision, AgentDecisionSchema, DecisionAttemptLog } from './types';
-import { RECOVERY_AGENT_SYSTEM_PROMPT, buildUserPrompt } from './prompt';
+const { z } = require('zod');
+const { RecoveryStrategy } = require('@prisma/client');
+const { RECOVERY_AGENT_SYSTEM_PROMPT, buildUserPrompt } = require('./prompt.js');
 
-export interface DecisionExecutionResult {
-  decision: AgentDecision;
-  attempts: DecisionAttemptLog[];
-  usedFallback: boolean;
-}
+const RecoveryStrategyEnum = z.enum([
+  'IMMEDIATE_RETRY',
+  'DELAYED_RETRY',
+  'REMINDER',
+  'ALTERNATIVE_METHOD',
+  'PAYMENT_LINK',
+  'PERSONALIZED_MESSAGE',
+  'INCENTIVE',
+  'NO_ACTION',
+]);
+
+const AgentDecisionSchema = z.object({
+  action: RecoveryStrategyEnum,
+  delayHours: z.number().int().min(1).max(72).optional(),
+  expectedRecovery: z.number().min(0),
+  confidence: z.number().min(0).max(1),
+  reason: z.string().min(10),
+});
 
 /**
  * Intelligent local decision synthesizer that mirrors LLM reasoning with exact context tailoring.
  * Ensures 100% deterministic, ultra-fast, and offline execution when no LLM key is configured.
  */
-export function synthesizeAgentDecision(context: AgentContext): AgentDecision {
+function synthesizeAgentDecision(context) {
   const {
     paymentAmount,
     failureReason,
@@ -100,10 +113,9 @@ export function synthesizeAgentDecision(context: AgentContext): AgentDecision {
 /**
  * Call Gemini / LLM if API key is provided
  */
-async function callLlmAgent(context: AgentContext, apiKey: string): Promise<any> {
+async function callLlmAgent(context, apiKey) {
   const userPrompt = buildUserPrompt(context);
   
-  // Use Gemini REST endpoint
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
   const response = await fetch(url, {
     method: 'POST',
@@ -141,18 +153,14 @@ async function callLlmAgent(context: AgentContext, apiKey: string): Promise<any>
  * Main Agent Decision Function
  * Enforces allowedActions guardrail, retries once upon violation, and falls back cleanly.
  */
-export async function decideRecoveryAction(
-  context: AgentContext,
-  options?: { apiKey?: string },
-): Promise<DecisionExecutionResult> {
-  const attempts: DecisionAttemptLog[] = [];
+async function decideRecoveryAction(context, options) {
+  const attempts = [];
   const apiKey = options?.apiKey || process.env.LLM_API_KEY;
   const isRealApiKey = apiKey && !apiKey.includes('your-llm-api-key') && apiKey.length > 10;
 
-  // Maximum 2 attempts
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      let rawDecision: any;
+      let rawDecision;
 
       if (isRealApiKey) {
         rawDecision = await callLlmAgent(context, apiKey);
@@ -175,7 +183,7 @@ export async function decideRecoveryAction(
       const decision = parsed.data;
 
       // 2. Validate that action is within allowedActions
-      const isAllowed = context.allowedActions.includes(decision.action as RecoveryStrategy);
+      const isAllowed = context.allowedActions.includes(decision.action);
       if (!isAllowed) {
         attempts.push({
           attempt,
@@ -198,7 +206,7 @@ export async function decideRecoveryAction(
         attempts,
         usedFallback: false,
       };
-    } catch (err: any) {
+    } catch (err) {
       attempts.push({
         attempt,
         actionChosen: 'ERROR',
@@ -216,3 +224,10 @@ export async function decideRecoveryAction(
     usedFallback: true,
   };
 }
+
+module.exports = {
+  RecoveryStrategyEnum,
+  AgentDecisionSchema,
+  synthesizeAgentDecision,
+  decideRecoveryAction,
+};

@@ -1,6 +1,4 @@
-import { AgentContext } from './types';
-
-export const RECOVERY_AGENT_SYSTEM_PROMPT = `You are RevivePay's Autonomous Revenue Recovery AI Agent.
+const RECOVERY_AGENT_SYSTEM_PROMPT = `You are RevivePay's Autonomous Revenue Recovery AI Agent.
 Your objective is to review failed payment transactions and recommend the optimal recovery strategy.
 
 CRITICAL INSTRUCTIONS & GUARDRAILS:
@@ -19,7 +17,7 @@ SCHEMA:
   "reason": "<1-2 sentence merchant-readable explanation referencing customer/payment details>"
 }`;
 
-export function buildUserPrompt(context: AgentContext): string {
+function buildUserPrompt(context) {
   return JSON.stringify({
     customerName: context.customerName || 'Valued Customer',
     paymentAmount: context.paymentAmount,
@@ -33,3 +31,8 @@ export function buildUserPrompt(context: AgentContext): string {
     requiresHumanApproval: context.requiresHumanApproval,
   }, null, 2);
 }
+
+module.exports = {
+  RECOVERY_AGENT_SYSTEM_PROMPT,
+  buildUserPrompt,
+};

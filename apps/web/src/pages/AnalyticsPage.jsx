@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ResponsiveContainer,
   BarChart,
@@ -11,13 +11,13 @@ import {
   Pie,
 } from 'recharts';
 import { RefreshCw, BarChart3, PieChart as PieIcon } from 'lucide-react';
-import { apiFetch } from '../utils/api';
+import { apiFetch } from '../utils/api.js';
 
 const COLORS = ['#38bdf8', '#818cf8', '#34d399', '#f472b6', '#fbbf24', '#f87171', '#a78bfa', '#94a3b8'];
 
 export default function AnalyticsPage() {
-  const [strategies, setStrategies] = useState<any[]>([]);
-  const [failureReasons, setFailureReasons] = useState<any[]>([]);
+  const [strategies, setStrategies] = useState([]);
+  const [failureReasons, setFailureReasons] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAnalytics = async () => {
@@ -153,7 +153,7 @@ export default function AnalyticsPage() {
                 <th className="py-2.5 px-3 text-right">Recovered Amount</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-slate-300">
+            <tbody className="divide-y border-slate-800/60 text-slate-300">
               {strategies.map((s) => (
                 <tr key={s.action} className="hover:bg-slate-800/30">
                   <td className="py-2.5 px-3 font-semibold text-white">{s.action}</td>

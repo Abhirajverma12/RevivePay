@@ -1,11 +1,11 @@
-import { Queue, Worker, Job } from 'bullmq';
-import { PrismaClient } from '@prisma/client';
-import { simulateRecoveryResult } from '@revivepay/simulator';
-import IORedis from 'ioredis';
+const { Queue, Worker } = require('bullmq');
+const { PrismaClient } = require('@prisma/client');
+const { simulateRecoveryResult } = require('@revivepay/simulator');
+const IORedis = require('ioredis');
 
 const redisUrl = process.env.REDIS_URL;
 
-let redisConnection: IORedis;
+let redisConnection;
 if (redisUrl) {
   redisConnection = new IORedis(redisUrl, {
     maxRetriesPerRequest: null,
@@ -26,18 +26,12 @@ redisConnection.on('error', (err) => {
   console.warn('⚠️ BullMQ Redis connection notice (fallback active):', err.message);
 });
 
-export interface DelayedRetryJobData {
-  interventionId: string;
-  failedPaymentId: string;
-  delayHours: number;
-}
-
-export const delayedRetryQueue = new Queue<DelayedRetryJobData>('delayed-retries', {
+const delayedRetryQueue = new Queue('delayed-retries', {
   connection: redisConnection,
 });
 
-let prismaInstance: PrismaClient | null = null;
-function getPrisma(): PrismaClient {
+let prismaInstance = null;
+function getPrisma() {
   if (!prismaInstance) {
     prismaInstance = new PrismaClient();
   }
@@ -47,9 +41,9 @@ function getPrisma(): PrismaClient {
 /**
  * BullMQ Worker processing delayed retries when their timer expires
  */
-export const delayedRetryWorker = new Worker<DelayedRetryJobData>(
+const delayedRetryWorker = new Worker(
   'delayed-retries',
-  async (job: Job<DelayedRetryJobData>) => {
+  async (job) => {
     console.log(`⏳ Processing delayed retry job #${job.id} for intervention ${job.data.interventionId}`);
     const prisma = getPrisma();
     const result = await simulateRecoveryResult(prisma, job.data.interventionId);
@@ -68,7 +62,7 @@ delayedRetryWorker.on('failed', (job, err) => {
 /**
  * Helper to enqueue a delayed retry job
  */
-export async function enqueueDelayedRetry(data: DelayedRetryJobData, delayOverrideMs?: number) {
+async function enqueueDelayedRetry(data, delayOverrideMs) {
   const delayMs = delayOverrideMs !== undefined ? delayOverrideMs : data.delayHours * 60 * 60 * 1000;
 
   try {
@@ -83,7 +77,7 @@ export async function enqueueDelayedRetry(data: DelayedRetryJobData, delayOverri
       delayMs,
       scheduledFor: new Date(Date.now() + delayMs).toISOString(),
     };
-  } catch (err: any) {
+  } catch (err) {
     console.warn('⚠️ BullMQ queue add fallback (in-memory schedule):', err.message);
     return {
       jobId: `local-job-${Date.now()}`,
@@ -92,3 +86,9 @@ export async function enqueueDelayedRetry(data: DelayedRetryJobData, delayOverri
     };
   }
 }
+
+module.exports = {
+  delayedRetryQueue,
+  delayedRetryWorker,
+  enqueueDelayedRetry,
+};

@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bot, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { apiFetch } from '../utils/api';
+import { apiFetch } from '../utils/api.js';
 
 export default function AgentActivityPage() {
-  const [activities, setActivities] = useState<any[]>([]);
+  const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchActivity = async () => {

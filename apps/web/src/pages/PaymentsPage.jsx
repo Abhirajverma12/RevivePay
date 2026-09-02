@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ArrowRight, RefreshCw, AlertCircle, PlusCircle } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { apiFetch } from '../utils/api';
+import { useAuth } from '../context/AuthContext.jsx';
+import { apiFetch } from '../utils/api.js';
 
 export default function PaymentsPage() {
-  const [payments, setPayments] = useState<any[]>([]);
+  const [payments, setPayments] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -20,7 +20,7 @@ export default function PaymentsPage() {
   const [isSimulating, setIsSimulating] = useState(false);
   const [simModalOpen, setSimModalOpen] = useState(false);
   const { merchant } = useAuth();
-  const [customers, setCustomers] = useState<any[]>([]);
+  const [customers, setCustomers] = useState([]);
   const [simCustomerId, setSimCustomerId] = useState('');
   const [simAmount, setSimAmount] = useState(4999);
   const [simMethod, setSimMethod] = useState('upi');

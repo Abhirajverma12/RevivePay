@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   TrendingUp,
@@ -22,7 +22,7 @@ import {
   Pie,
 } from 'recharts';
 
-const FAILURE_COLORS: Record<string, string> = {
+const FAILURE_COLORS = {
   BANK_ERROR: '#ef4444',
   INSUFFICIENT_FUNDS: '#f97316',
   NETWORK_ERROR: '#38bdf8',
@@ -31,14 +31,14 @@ const FAILURE_COLORS: Record<string, string> = {
   EXPIRED_CARD: '#64748b',
 };
 
-import { useAuth } from '../context/AuthContext';
-import { apiFetch } from '../utils/api';
+import { useAuth } from '../context/AuthContext.jsx';
+import { apiFetch } from '../utils/api.js';
 
 export default function DashboardPage() {
   const { merchant } = useAuth();
-  const [revenue, setRevenue] = useState<any>(null);
-  const [failureReasons, setFailureReasons] = useState<any[]>([]);
-  const [strategies, setStrategies] = useState<any[]>([]);
+  const [revenue, setRevenue] = useState(null);
+  const [failureReasons, setFailureReasons] = useState([]);
+  const [strategies, setStrategies] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {

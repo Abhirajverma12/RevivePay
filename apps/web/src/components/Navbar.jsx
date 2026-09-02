@@ -1,12 +1,9 @@
+import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, CreditCard, Bot, BarChart3, LogOut, User, Building2 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext.jsx';
 
-interface NavbarProps {
-  apiStatus: 'checking' | 'connected' | 'disconnected';
-}
-
-export default function Navbar({ apiStatus }: NavbarProps) {
+export default function Navbar({ apiStatus }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { merchant, logout } = useAuth();

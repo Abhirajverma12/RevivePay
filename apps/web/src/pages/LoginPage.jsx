@@ -1,18 +1,18 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext.jsx';
 import { ShieldCheck, ArrowRight, RefreshCw, AlertCircle, Sparkles, Building2 } from 'lucide-react';
 
 export default function LoginPage() {
   const { login, signup, quickLogin } = useAuth();
   const navigate = useNavigate();
 
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [mode, setMode] = useState('signin');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('billing@saasifycloud.io');
   const [password, setPassword] = useState('password123');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   const demoMerchants = [
     {
@@ -32,7 +32,7 @@ export default function LoginPage() {
     },
   ];
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -58,7 +58,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickDemoLogin = async (demoEmail: string) => {
+  const handleQuickDemoLogin = async (demoEmail) => {
     setError(null);
     setLoading(true);
     try {

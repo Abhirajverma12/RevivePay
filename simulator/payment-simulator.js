@@ -1,32 +1,4 @@
-import { PrismaClient, FailureReason } from '@prisma/client';
-
-export interface SimulateFailedPaymentParams {
-  customerId: string;
-  amount: number;
-  method?: string;
-}
-
-export interface SimulateFailedPaymentResult {
-  paymentId: string;
-  failedPaymentId: string;
-  customerId: string;
-  customerName: string;
-  amount: number;
-  currency: string;
-  method: string;
-  failureReason: FailureReason;
-  status: string;
-  failedAt: Date;
-}
-
-export interface SimulateRecoveryResult {
-  interventionId: string;
-  recovered: boolean;
-  amountRecovered: number;
-  resolvedAt: Date;
-  recoveryProbability: number;
-  notes: string;
-}
+const { FailureReason } = require('@prisma/client');
 
 /**
  * Weighted selection favoring recoverable / temporary errors:
@@ -37,7 +9,7 @@ export interface SimulateRecoveryResult {
  * - CARD_DECLINED: 3%
  * - EXPIRED_CARD: 2%
  */
-export function getRandomRecoverableFailureReason(): FailureReason {
+function getRandomRecoverableFailureReason() {
   const rand = Math.random();
   if (rand < 0.40) return FailureReason.NETWORK_ERROR;
   if (rand < 0.75) return FailureReason.INSUFFICIENT_FUNDS;
@@ -50,10 +22,7 @@ export function getRandomRecoverableFailureReason(): FailureReason {
 /**
  * Creates a simulated failed payment on demand
  */
-export async function simulateFailedPayment(
-  prisma: PrismaClient,
-  params: SimulateFailedPaymentParams,
-): Promise<SimulateFailedPaymentResult> {
+async function simulateFailedPayment(prisma, params) {
   const { customerId, amount, method = 'card' } = params;
 
   // 1. Verify customer exists
@@ -130,10 +99,7 @@ export async function simulateFailedPayment(
 /**
  * Resolves an intervention as recovered or not, weighted by its recovery_probability
  */
-export async function simulateRecoveryResult(
-  prisma: PrismaClient,
-  interventionId: string,
-): Promise<SimulateRecoveryResult> {
+async function simulateRecoveryResult(prisma, interventionId) {
   const intervention = await prisma.intervention.findUnique({
     where: { id: interventionId },
     include: {
@@ -158,10 +124,7 @@ export async function simulateRecoveryResult(
   const payment = failedPayment.payment;
   const prediction = failedPayment.recovery_prediction;
 
-  // Use calculated recovery_probability or default to 0.50 if not yet analyzed
   const probability = prediction?.recovery_probability ?? 0.50;
-
-  // Weighted coin flip based on probability
   const isRecovered = Math.random() < probability;
   const amountRecovered = isRecovered ? payment.amount : 0.0;
   const now = new Date();
@@ -171,7 +134,7 @@ export async function simulateRecoveryResult(
     : `Recovery attempt unsuccessful in simulation (probability was ${(probability * 100).toFixed(1)}%).`;
 
   // Create or update RecoveryOutcome
-  const outcome = await prisma.recoveryOutcome.upsert({
+  await prisma.recoveryOutcome.upsert({
     where: { intervention_id: intervention.id },
     create: {
       intervention_id: intervention.id,
@@ -250,3 +213,9 @@ export async function simulateRecoveryResult(
     notes,
   };
 }
+
+module.exports = {
+  getRandomRecoverableFailureReason,
+  simulateFailedPayment,
+  simulateRecoveryResult,
+};

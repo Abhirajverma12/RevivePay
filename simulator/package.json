@@ -2,15 +2,9 @@
   "name": "@revivepay/simulator",
   "version": "0.1.0",
   "private": true,
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "scripts": {
-    "build": "tsc"
-  },
+  "main": "./index.js",
+  "scripts": {},
   "dependencies": {
     "@prisma/client": "^5.22.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.7.2"
   }
 }

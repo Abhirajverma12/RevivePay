@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { apiFetch } from '../utils/api';
+import { apiFetch } from '../utils/api.js';
 import {
   ArrowLeft,
   Sparkles,
@@ -14,14 +14,14 @@ import {
 } from 'lucide-react';
 
 export default function PaymentDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const [data, setData] = useState<any>(null);
+  const { id } = useParams();
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Recovery & Decision Actions
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isRecovering, setIsRecovering] = useState(false);
-  const [recoveryMessage, setRecoveryMessage] = useState<any>(null);
+  const [recoveryMessage, setRecoveryMessage] = useState(null);
 
   const fetchDetails = async () => {
     if (!id) return;
@@ -46,7 +46,6 @@ export default function PaymentDetailPage() {
     if (!id) return;
     setIsAnalyzing(true);
     try {
-      // Analyze and formulate AI decision
       const res = await apiFetch(`/api/agent/decide/${id}`, { method: 'POST' });
       if (res.ok) {
         await fetchDetails();
@@ -176,7 +175,7 @@ export default function PaymentDetailPage() {
         </div>
       )}
 
-      {/* 🌟 HERO AI ANALYSIS BLOCK (Prominent, Non-Buried, High-Contrast) */}
+      {/* 🌟 HERO AI ANALYSIS BLOCK */}
       <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border-2 border-sky-500/40 shadow-2xl space-y-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-sky-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -278,7 +277,7 @@ export default function PaymentDetailPage() {
         </div>
       </div>
 
-      {/* Context Details Grid (2 Columns) */}
+      {/* Context Details Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Customer Context Block */}
         <div className="lg:col-span-6 p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
@@ -328,7 +327,7 @@ export default function PaymentDetailPage() {
           </h3>
 
           <div className="space-y-2.5 text-xs">
-            {attempts?.map((att: any) => (
+            {attempts?.map((att) => (
               <div
                 key={att.id}
                 className="p-3 rounded-lg bg-slate-950/60 border border-slate-850 flex items-center justify-between"

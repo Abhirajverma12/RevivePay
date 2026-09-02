@@ -1,19 +1,8 @@
 /**
- * RevivePay Recovery Tools Definition
- * 
- * Note: These tools are mapped to agent decisions and executed in Phase 6.
- * The AI Agent decides the recovery strategy, and the execution engine
- * invokes these tools accordingly.
+ * RevivePay Recovery Tools Definition (Pure JavaScript)
  */
 
-export interface ToolExecutionResult {
-  tool: string;
-  status: 'QUEUED' | 'READY' | 'CONFIGURED';
-  parameters: Record<string, any>;
-  description: string;
-}
-
-export function scheduleRetry(delayHours: number): ToolExecutionResult {
+function scheduleRetry(delayHours) {
   return {
     tool: 'scheduleRetry',
     status: 'QUEUED',
@@ -22,7 +11,7 @@ export function scheduleRetry(delayHours: number): ToolExecutionResult {
   };
 }
 
-export function retryPayment(): ToolExecutionResult {
+function retryPayment() {
   return {
     tool: 'retryPayment',
     status: 'READY',
@@ -31,7 +20,7 @@ export function retryPayment(): ToolExecutionResult {
   };
 }
 
-export function sendPaymentReminder(): ToolExecutionResult {
+function sendPaymentReminder() {
   return {
     tool: 'sendPaymentReminder',
     status: 'READY',
@@ -40,7 +29,7 @@ export function sendPaymentReminder(): ToolExecutionResult {
   };
 }
 
-export function createPaymentLink(): ToolExecutionResult {
+function createPaymentLink() {
   return {
     tool: 'createPaymentLink',
     status: 'READY',
@@ -49,7 +38,7 @@ export function createPaymentLink(): ToolExecutionResult {
   };
 }
 
-export function suggestAlternativeMethod(): ToolExecutionResult {
+function suggestAlternativeMethod() {
   return {
     tool: 'suggestAlternativeMethod',
     status: 'READY',
@@ -58,7 +47,7 @@ export function suggestAlternativeMethod(): ToolExecutionResult {
   };
 }
 
-export function applyDiscount(pct: number): ToolExecutionResult {
+function applyDiscount(pct) {
   return {
     tool: 'applyDiscount',
     status: 'CONFIGURED',
@@ -66,3 +55,12 @@ export function applyDiscount(pct: number): ToolExecutionResult {
     description: `Configured time-sensitive ${pct}% discount incentive link to recover transaction.`,
   };
 }
+
+module.exports = {
+  scheduleRetry,
+  retryPayment,
+  sendPaymentReminder,
+  createPaymentLink,
+  suggestAlternativeMethod,
+  applyDiscount,
+};
