@@ -16,23 +16,11 @@ services:
         fromDatabase:
           name: revivepay-db
           property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: revivepay-redis
-          property: connectionString
 
 databases:
-  # Managed PostgreSQL Database
+  # Managed Free PostgreSQL Database
   - name: revivepay-db
     plan: free
     region: oregon
     databaseName: revivepay
     user: revivepay_user
-
-  # Managed Redis
-  - name: revivepay-redis
-    type: redis
-    plan: free
-    region: oregon
-    maxmemoryPolicy: noeviction
