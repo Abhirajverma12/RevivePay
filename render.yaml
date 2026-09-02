@@ -5,11 +5,9 @@ services:
     runtime: node
     plan: free
     region: oregon
-    buildCommand: npm install && npm run build:backend
+    buildCommand: npm install --include=dev && npm run build:backend
     startCommand: npx prisma db push && npm run demo:seed && npm run start:backend
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: JWT_SECRET
         generateValue: true
       - key: DATABASE_URL
